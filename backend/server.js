@@ -51,6 +51,9 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
   });
 });
 
+// Import middleware
+import errorHandler from './src/middleware/errorHandler.js';
+
 // Import routes (will be added later)
 // import authRoutes from './src/routes/auth.routes.js';
 // import userRoutes from './src/routes/user.routes.js';
@@ -61,7 +64,7 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
 // app.use(`/api/${API_VERSION}/users`, userRoutes);
 // app.use(`/api/${API_VERSION}/properties`, propertyRoutes);
 
-// 404 handler
+// 404 handler - Must be after all routes
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -70,22 +73,8 @@ app.use('*', (req, res) => {
   });
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-
-  res.status(statusCode).json({
-    success: false,
-    error: {
-      message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    },
-    timestamp: new Date().toISOString()
-  });
-});
+// Global error handler - Must be last
+app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
