@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Production
+/build
+/dist
+/.next
+/out
+
+# Testing
+/coverage
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# MongoDB
+/data/db
+
+# Redis
+dump.rdb
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+/tmp
+*.tmp
+*.temp
+
+# Uploads
+/uploads
+/public/uploads
+
+# Cache
+.cache/
+.parcel-cache/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# AWS
+.aws-sam/
+
+# Python (for AI service)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv
+
+# Documentation planning files (keep in repo for now, but can be moved later)
+# masterplan.md
+# technical specs.md
+# medels&routes.md
+# features1.md
