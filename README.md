@@ -39,36 +39,48 @@ GreenRent is a comprehensive rental management platform designed to democratize 
 ## Project Structure
 ```
 green_rent/
-├── backend/                 # Node.js/Express API
+├── backend/                              # Node.js/Express API
 │   ├── src/
-│   │   ├── config/         # Configuration files
-│   │   ├── models/         # Mongoose models
-│   │   ├── controllers/    # Route controllers
-│   │   ├── routes/         # API routes
-│   │   ├── middleware/     # Custom middleware
-│   │   ├── services/       # Business logic
-│   │   └── utils/          # Utility functions
-│   ├── .env               # Environment variables
-│   ├── .env.example       # Environment template
+│   │   ├── config/                      # Configuration files
+│   │   ├── models/                      # Mongoose models (User, Property, Unit, etc.)
+│   │   ├── controllers/                 # Route controllers
+│   │   ├── routes/                      # API routes
+│   │   ├── middleware/                  # Custom middleware (auth, validation, etc.)
+│   │   ├── services/                    # Business logic
+│   │   └── utils/                       # Utility functions
+│   ├── .env                             # Environment variables (git-ignored)
+│   ├── .env.example                     # Environment template
 │   ├── package.json
-│   └── server.js          # Entry point
+│   ├── package-lock.json
+│   └── server.js                        # Entry point
 │
-├── frontend/               # Next.js application
-│   ├── app/               # Next.js 14 app directory
-│   ├── components/        # React components
-│   ├── lib/               # Utilities and helpers
-│   ├── hooks/             # Custom React hooks
-│   ├── types/             # TypeScript types
-│   ├── public/            # Static assets
-│   └── package.json
+├── frontend/                             # Next.js application
+│   ├── app/                             # Next.js 14 app directory
+│   │   ├── (auth)/                      # Auth routes group
+│   │   ├── (dashboard)/                 # Dashboard routes group
+│   │   └── layout.tsx                   # Root layout
+│   ├── components/                      # React components
+│   ├── lib/                             # Utilities and helpers
+│   ├── hooks/                           # Custom React hooks
+│   ├── types/                           # TypeScript types
+│   ├── public/                          # Static assets
+│   ├── package.json
+│   ├── package-lock.json
+│   └── next.config.js
 │
-├── docs/                   # Documentation
-│   ├── masterplan.md      # Project master plan
-│   ├── technical specs.md # Technical specifications
-│   ├── medels&routes.md   # API documentation
-│   └── features1.md       # Feature details
+├── docs/                                 # Documentation
+│   ├── masterplan.md                    # Project master plan
+│   ├── technical specs.md               # Technical specifications
+│   ├── medels&routes.md                 # Models & routes documentation
+│   ├── features1.md                     # Feature details
+│   ├── API_DOCUMENTATION.md             # API endpoint documentation
+│   ├── BACKEND_IMPLEMENTATION_UPDATE.md # Backend progress
+│   ├── MODELS_SETUP_COMPLETE.md         # Models setup details
+│   ├── ROUTES_SETUP_COMPLETE.md         # Routes setup details
+│   └── SETUP_COMPLETE.md                # Initial setup documentation
 │
 ├── .gitignore
+├── .claude/                              # Claude Code configuration
 └── README.md
 ```
 
@@ -180,7 +192,7 @@ Base URL: `http://localhost:5000/api/v1`
 - `POST /api/v1/wallet/deposit` - Deposit to rent wallet
 - `POST /api/v1/payments/initiate` - Initiate payment
 
-See `docs/medels&routes.md` for complete API documentation.
+See [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) and [docs/medels&routes.md](docs/medels&routes.md) for complete API documentation.
 
 ## Development Phases
 
