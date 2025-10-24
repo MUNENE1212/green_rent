@@ -7,6 +7,7 @@ import { RentWallet, User, Lease, Payment } from '../models/index.js';
 import ApiResponse from '../utils/apiResponse.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
+import mpesaService from '../services/mpesa.service.js';
 
 /**
  * Create rent wallet
@@ -123,6 +124,78 @@ export const depositToWallet = catchAsync(async (req, res) => {
     wallet,
     deposit: wallet.deposits[wallet.deposits.length - 1],
     achievements: wallet.gamification.achievements
+  });
+});
+
+/**
+ * Initiate M-Pesa STK Push deposit
+ * POST /api/v1/rent-wallets/deposit/mpesa
+ */
+export const initiateMpesaDeposit = catchAsync(async (req, res) => {
+  const { amount, phoneNumber } = req.body;
+
+  // Validate inputs
+  if (!amount || amount < 10) {
+    return ApiResponse.error(res, 400, 'Minimum deposit amount is KES 10');
+  }
+
+  if (!phoneNumber) {
+    return ApiResponse.error(res, 400, 'Phone number is required');
+  }
+
+  // Get or create user's wallet
+  let wallet = await RentWallet.findOne({
+    userId: req.user._id,
+    status: 'active'
+  });
+
+  if (!wallet) {
+    // Create wallet if doesn't exist
+    wallet = await RentWallet.create({
+      userId: req.user._id,
+      targetAmount: 0,
+      walletType: 'rent_savings'
+    });
+  }
+
+  // Create pending payment record
+  const payment = await Payment.create({
+    userId: req.user._id,
+    walletId: wallet._id,
+    amount,
+    paymentMethod: 'mpesa',
+    status: 'pending',
+    phoneNumber,
+    type: 'deposit'
+  });
+
+  // Initiate STK Push
+  const stkResult = await mpesaService.initiateSTKPush(
+    phoneNumber,
+    amount,
+    payment._id.toString(),
+    `Wallet Deposit - KES ${amount}`
+  );
+
+  if (!stkResult.success) {
+    // Update payment status to failed
+    payment.status = 'failed';
+    payment.errorMessage = stkResult.error;
+    await payment.save();
+
+    return ApiResponse.error(res, 400, stkResult.error || 'Failed to initiate M-Pesa payment');
+  }
+
+  // Update payment with M-Pesa details
+  payment.mpesaCheckoutRequestId = stkResult.checkoutRequestId;
+  payment.mpesaMerchantRequestId = stkResult.merchantRequestId;
+  await payment.save();
+
+  return ApiResponse.success(res, 200, 'STK Push initiated. Please check your phone to complete payment', {
+    checkoutRequestId: stkResult.checkoutRequestId,
+    merchantRequestId: stkResult.merchantRequestId,
+    customerMessage: stkResult.customerMessage,
+    paymentId: payment._id
   });
 });
 

@@ -8,12 +8,13 @@ import { authAPI } from '@/lib/api/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, setLoading } = useAuthStore();
+  const { login } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +28,22 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+
+      // Display user-friendly error messages
+      let errorMsg = 'Login failed. Please try again.';
+
+      if (err.status === 401) {
+        errorMsg = 'Invalid email or password. Please try again.';
+      } else if (err.status === 422) {
+        errorMsg = 'Please enter a valid email and password.';
+      } else if (err.status === 404) {
+        errorMsg = 'No account found with this email.';
+      } else {
+        errorMsg = err.message || errorMsg;
+      }
+
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -104,9 +120,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors"
+              disabled={loading}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 

@@ -8,7 +8,7 @@ import { authAPI } from '@/lib/api/auth';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login, setLoading } = useAuthStore();
+  const { login } = useAuthStore();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,6 +19,7 @@ export default function RegisterPage() {
     role: 'tenant' as 'tenant' | 'landlord',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,26 @@ export default function RegisterPage() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+
+      // Display detailed error messages
+      let errorMsg = 'Registration failed. Please try again.';
+
+      if (err.status === 422) {
+        // Validation error - show specific field errors if available
+        if (err.data?.errors && typeof err.data.errors === 'object') {
+          const fieldErrors = Object.values(err.data.errors).join(', ');
+          errorMsg = fieldErrors || err.message;
+        } else {
+          errorMsg = err.message;
+        }
+      } else if (err.status === 409) {
+        errorMsg = 'An account with this email or phone already exists.';
+      } else {
+        errorMsg = err.message || errorMsg;
+      }
+
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -225,9 +245,10 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors"
+              disabled={loading}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

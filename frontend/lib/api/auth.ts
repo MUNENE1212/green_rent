@@ -21,7 +21,18 @@ export const authAPI = {
   },
 
   register: async (data: RegisterData): Promise<APIResponse<{ user: User; token: string }>> => {
-    return apiClient.post('/auth/register', data);
+    // Transform data to match backend expected format
+    const payload = {
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      role: data.role,
+      profile: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+      },
+    };
+    return apiClient.post('/auth/register', payload);
   },
 
   logout: async (): Promise<APIResponse<null>> => {
