@@ -191,12 +191,14 @@ const userSchema = new Schema({
     },
     emailVerificationToken: String,
     emailVerificationExpires: Date,
+    emailVerifiedAt: Date,
     phoneVerified: {
       type: Boolean,
       default: false
     },
     phoneVerificationToken: String,
     phoneVerificationExpires: Date,
+    phoneVerifiedAt: Date,
     identityVerified: {
       type: Boolean,
       default: false
@@ -221,7 +223,22 @@ const userSchema = new Schema({
       type: Boolean,
       default: false
     },
-    twoFactorSecret: String
+    twoFactorSecret: String,
+    refreshTokens: [{
+      token: {
+        type: String,
+        required: true
+      },
+      expiresAt: {
+        type: Date,
+        required: true
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    lastLogin: Date
   },
 
   subscription: {
@@ -234,9 +251,7 @@ const userSchema = new Schema({
     type: String,
     enum: ['active', 'suspended', 'banned', 'deleted'],
     default: 'active'
-  },
-
-  lastLogin: Date
+  }
 
 }, {
   timestamps: true,

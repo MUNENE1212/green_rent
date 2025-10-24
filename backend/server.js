@@ -54,15 +54,25 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
 // Import middleware
 import errorHandler from './src/middleware/errorHandler.js';
 
-// Import routes (will be added later)
-// import authRoutes from './src/routes/auth.routes.js';
-// import userRoutes from './src/routes/user.routes.js';
-// import propertyRoutes from './src/routes/property.routes.js';
+// Import routes
+import authRoutes from './src/routes/auth.routes.js';
+import userRoutes from './src/routes/user.routes.js';
+import propertyRoutes from './src/routes/property.routes.js';
+import unitRoutes from './src/routes/unit.routes.js';
+import rentWalletRoutes from './src/routes/rentWallet.routes.js';
+import paymentRoutes from './src/routes/payment.routes.js';
+import bookingRoutes from './src/routes/booking.routes.js';
+import leaseRoutes from './src/routes/lease.routes.js';
 
-// Use routes (will be uncommented as we create them)
-// app.use(`/api/${API_VERSION}/auth`, authRoutes);
-// app.use(`/api/${API_VERSION}/users`, userRoutes);
-// app.use(`/api/${API_VERSION}/properties`, propertyRoutes);
+// Use routes
+app.use(`/api/${API_VERSION}/auth`, authRoutes);
+app.use(`/api/${API_VERSION}/users`, userRoutes);
+app.use(`/api/${API_VERSION}/properties`, propertyRoutes);
+app.use(`/api/${API_VERSION}/units`, unitRoutes);
+app.use(`/api/${API_VERSION}/rent-wallets`, rentWalletRoutes);
+app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
+app.use(`/api/${API_VERSION}/bookings`, bookingRoutes);
+app.use(`/api/${API_VERSION}/leases`, leaseRoutes);
 
 // 404 handler - Must be after all routes
 app.use('*', (req, res) => {
