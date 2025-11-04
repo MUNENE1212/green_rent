@@ -6,8 +6,7 @@ const paymentPlanSchema = new Schema({
   leaseId: {
     type: Schema.Types.ObjectId,
     ref: 'Lease',
-    required: true,
-    index: true
+    required: true
   },
 
   planType: {

@@ -6,8 +6,7 @@ const propertySchema = new Schema({
   landlordId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   basicInfo: {

@@ -12,22 +12,19 @@ const leaseSchema = new Schema({
   unitId: {
     type: Schema.Types.ObjectId,
     ref: 'Unit',
-    required: true,
-    index: true
+    required: true
   },
 
   tenantId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   landlordId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   startDate: {
@@ -67,8 +64,7 @@ const leaseSchema = new Schema({
   status: {
     type: String,
     enum: ['draft', 'pending_tenant_signature', 'pending_landlord_approval', 'active', 'expired', 'terminated', 'renewed'],
-    default: 'draft',
-    index: true
+    default: 'draft'
   },
 
   customTerms: [{
@@ -244,7 +240,7 @@ const leaseSchema = new Schema({
 });
 
 // Indexes
-leaseSchema.index({ leaseNumber: 1 }, { unique: true });
+// Note: leaseNumber already has unique index from field definition
 leaseSchema.index({ unitId: 1 });
 leaseSchema.index({ tenantId: 1 });
 leaseSchema.index({ landlordId: 1 });

@@ -12,22 +12,19 @@ const bookingSchema = new Schema({
   unitId: {
     type: Schema.Types.ObjectId,
     ref: 'Unit',
-    required: true,
-    index: true
+    required: true
   },
 
   tenantId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   landlordId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   bookingType: {
@@ -39,8 +36,7 @@ const bookingSchema = new Schema({
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'completed', 'cancelled', 'expired', 'converted_to_lease'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
 
   bookingFee: {
@@ -164,7 +160,7 @@ const bookingSchema = new Schema({
 });
 
 // Indexes
-bookingSchema.index({ bookingNumber: 1 }, { unique: true });
+// Note: bookingNumber already has unique index from field definition
 bookingSchema.index({ unitId: 1 });
 bookingSchema.index({ tenantId: 1 });
 bookingSchema.index({ landlordId: 1 });

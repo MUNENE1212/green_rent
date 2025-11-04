@@ -6,8 +6,7 @@ const unitSchema = new Schema({
   propertyId: {
     type: Schema.Types.ObjectId,
     ref: 'Property',
-    required: true,
-    index: true
+    required: true
   },
 
   unitNumber: {
@@ -88,8 +87,7 @@ const unitSchema = new Schema({
   availabilityStatus: {
     type: String,
     enum: ['available', 'occupied', 'reserved', 'maintenance', 'under_offer'],
-    default: 'available',
-    index: true
+    default: 'available'
   },
 
   availableFrom: {
