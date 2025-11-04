@@ -9,45 +9,171 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
 
 /**
+ * Helper: Transform simplified utility data to full schema format
+ */
+const transformUtilities = (utilities) => {
+  if (!utilities) return {};
+
+  const transformed = {};
+
+  // Transform water
+  if (utilities.water) {
+    if (typeof utilities.water === 'string') {
+      transformed.water = {
+        source: 'municipal',
+        meterType: 'individual',
+        included: utilities.water === 'included',
+        ratePerUnit: utilities.water === 'tenant' ? 50 : undefined
+      };
+    } else {
+      transformed.water = utilities.water;
+    }
+  }
+
+  // Transform electricity
+  if (utilities.electricity) {
+    if (typeof utilities.electricity === 'string') {
+      transformed.electricity = {
+        provider: 'Kenya Power',
+        meterType: 'prepaid',
+        included: utilities.electricity === 'included',
+        ratePerUnit: utilities.electricity === 'tenant' ? 20 : undefined
+      };
+    } else {
+      transformed.electricity = utilities.electricity;
+    }
+  }
+
+  // Transform internet
+  if (utilities.internet) {
+    if (typeof utilities.internet === 'string') {
+      transformed.internet = {
+        available: utilities.internet !== 'none',
+        included: utilities.internet === 'included',
+        provider: utilities.internet === 'tenant' ? '' : undefined,
+        speed: ''
+      };
+    } else {
+      transformed.internet = utilities.internet;
+    }
+  }
+
+  // Transform gas
+  if (utilities.gas) {
+    if (typeof utilities.gas === 'string') {
+      transformed.gas = {
+        available: utilities.gas !== 'none',
+        type: 'cylinder',
+        included: utilities.gas === 'included'
+      };
+    } else {
+      transformed.gas = utilities.gas;
+    }
+  }
+
+  return transformed;
+};
+
+/**
+ * Helper: Normalize property data from simplified frontend format
+ */
+const normalizePropertyData = (data, landlordId) => {
+  // Handle location data
+  const locationData = data.location || {};
+  const addressData = locationData.address || data.address || {};
+
+  const normalized = {
+    landlordId,
+    basicInfo: {
+      name: data.name || data.basicInfo?.name,
+      description: data.description || data.basicInfo?.description,
+      propertyType: data.propertyType || data.basicInfo?.propertyType,
+      totalUnits: data.totalUnits || data.basicInfo?.totalUnits || 1,
+      totalFloors: data.totalFloors || data.basicInfo?.totalFloors || 1,
+      parkingSpaces: data.parkingSpaces || data.basicInfo?.parkingSpaces || 0,
+      yearBuilt: data.yearBuilt || data.basicInfo?.yearBuilt
+    },
+    location: {
+      address: {
+        street: addressData.street || data.street || '',
+        area: addressData.area || data.area || '',
+        city: addressData.city || data.city || 'Nairobi',
+        county: addressData.county || data.county || 'Nairobi',
+        postalCode: addressData.postalCode || data.postalCode,
+        landmark: addressData.landmark || data.landmark
+      },
+      coordinates: locationData.coordinates || {
+        type: 'Point',
+        coordinates: [36.8219, -1.2921] // Default: Nairobi
+      },
+      accessibility: locationData.accessibility || {}
+    },
+    amenities: data.amenities || {},
+    utilities: transformUtilities(data.utilities),
+    media: data.media || [],
+    virtualTour: data.virtualTour || {},
+    pricing: {
+      basePrice: data.basePrice || data.pricing?.basePrice || 0,
+      priceRange: {
+        min: data.priceRange?.min || data.pricing?.priceRange?.min || data.basePrice || 0,
+        max: data.priceRange?.max || data.pricing?.priceRange?.max || data.basePrice || 0
+      },
+      deposit: {
+        amount: data.deposit || data.pricing?.deposit?.amount || (data.basePrice || 0),
+        refundable: data.depositRefundable !== false
+      },
+      otherFees: data.otherFees || data.pricing?.otherFees || []
+    },
+    occupancy: {
+      totalUnits: data.totalUnits || data.basicInfo?.totalUnits || data.occupancy?.totalUnits || 1,
+      occupiedUnits: 0,
+      availableUnits: data.totalUnits || data.basicInfo?.totalUnits || 1,
+      maintenanceUnits: 0,
+      occupancyRate: 0
+    },
+    management: data.management || {},
+    settings: data.settings || {},
+    performance: {
+      averageRating: 0,
+      totalReviews: 0,
+      viewCount: 0,
+      inquiryCount: 0,
+      conversionRate: 0
+    },
+    status: data.status || 'pending_approval',
+    featured: data.featured || false,
+    verifiedProperty: false
+  };
+
+  return normalized;
+};
+
+/**
  * Create new property
  * POST /api/v1/properties
  */
 export const createProperty = catchAsync(async (req, res) => {
-  const {
-    name,
-    description,
-    propertyType,
-    location,
-    amenities,
-    utilities,
-    media,
-    managementDetails,
-    policies
-  } = req.body;
-
   // Validate landlord role
   if (req.user.role !== 'landlord' && req.user.role !== 'admin') {
     return ApiResponse.forbidden(res, 'Only landlords can create properties');
   }
 
-  // Validate coordinates
-  if (!location?.coordinates?.coordinates || location.coordinates.coordinates.length !== 2) {
-    return ApiResponse.error(res, 400, 'Valid coordinates [longitude, latitude] are required');
+  // Normalize and transform property data
+  const propertyData = normalizePropertyData(req.body, req.user._id);
+
+  // Override coordinates if explicitly provided in correct format
+  if (req.body.location?.coordinates?.coordinates) {
+    if (req.body.location.coordinates.coordinates.length !== 2) {
+      return ApiResponse.error(res, 400, 'Valid coordinates [longitude, latitude] are required');
+    }
+    propertyData.location.coordinates = {
+      type: 'Point',
+      coordinates: req.body.location.coordinates.coordinates
+    };
   }
 
   // Create property
-  const property = await Property.create({
-    name,
-    description,
-    propertyType,
-    location,
-    amenities,
-    utilities,
-    media,
-    managementDetails,
-    policies,
-    landlordId: req.user._id
-  });
+  const property = await Property.create(propertyData);
 
   return ApiResponse.success(res, 201, 'Property created successfully', { property });
 });
