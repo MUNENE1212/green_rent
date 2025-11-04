@@ -31,7 +31,10 @@ export default function WalletPage() {
       ]);
 
       if (walletResponse.data) {
-        setWallet(walletResponse.data);
+        // Backend returns { data: { wallet: {...} } }
+        const walletData = walletResponse.data.wallet || walletResponse.data;
+        console.log('Wallet data received:', walletData);
+        setWallet(walletData);
       }
 
       if (transactionsResponse.data) {
@@ -47,19 +50,38 @@ export default function WalletPage() {
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await walletAPI.deposit({
-        amount: Number(depositAmount),
-        paymentMethod: depositMethod,
-        phoneNumber: depositMethod === 'mpesa' ? phoneNumber : undefined,
-      });
-      setShowDepositModal(false);
-      setDepositAmount('');
-      setPhoneNumber('');
-      fetchWalletData();
-      alert('Deposit initiated successfully!');
-    } catch (error) {
+      if (depositMethod === 'mpesa') {
+        // Use M-Pesa STK Push
+        if (!phoneNumber) {
+          alert('Please enter your M-Pesa phone number');
+          return;
+        }
+        const response = await walletAPI.depositViaMpesa({
+          amount: Number(depositAmount),
+          phoneNumber: phoneNumber,
+        });
+        setShowDepositModal(false);
+        setDepositAmount('');
+        setPhoneNumber('');
+        alert(response.data?.customerMessage || 'STK Push sent! Please check your phone to complete payment.');
+        // Poll for payment status
+        setTimeout(() => fetchWalletData(), 5000);
+      } else {
+        // Use regular deposit for other methods
+        await walletAPI.deposit({
+          amount: Number(depositAmount),
+          paymentMethod: depositMethod,
+          phoneNumber: depositMethod === 'mpesa' ? phoneNumber : undefined,
+        });
+        setShowDepositModal(false);
+        setDepositAmount('');
+        setPhoneNumber('');
+        fetchWalletData();
+        alert('Deposit initiated successfully!');
+      }
+    } catch (error: any) {
       console.error('Error depositing:', error);
-      alert('Failed to initiate deposit. Please try again.');
+      alert(error.message || 'Failed to initiate deposit. Please try again.');
     }
   };
 
@@ -81,8 +103,10 @@ export default function WalletPage() {
     );
   }
 
-  const savingsProgress = wallet?.savingsGoal
-    ? ((wallet.balance / wallet.savingsGoal) * 100).toFixed(1)
+  const balance = wallet?.balance || 0;
+  const savingsGoal = wallet?.savingsGoal || wallet?.targetAmount || 0;
+  const savingsProgress = savingsGoal
+    ? ((balance / savingsGoal) * 100).toFixed(1)
     : 0;
 
   return (
@@ -104,7 +128,7 @@ export default function WalletPage() {
               {loading ? (
                 <div className="h-12 w-48 bg-primary-500 rounded animate-pulse"></div>
               ) : (
-                <h2 className="text-5xl font-bold">KES {wallet?.balance.toLocaleString() || '0'}</h2>
+                <h2 className="text-5xl font-bold">KES {balance.toLocaleString()}</h2>
               )}
             </div>
             <button
@@ -116,7 +140,7 @@ export default function WalletPage() {
           </div>
 
           {/* Savings Goal Progress */}
-          {wallet?.savingsGoal && (
+          {savingsGoal > 0 && (
             <div className="bg-white/10 backdrop-blur rounded-xl p-4">
               <div className="flex justify-between text-sm mb-2">
                 <span>Savings Goal Progress</span>
@@ -129,8 +153,8 @@ export default function WalletPage() {
                 ></div>
               </div>
               <div className="flex justify-between text-sm text-primary-100">
-                <span>KES {wallet.balance.toLocaleString()}</span>
-                <span>Goal: KES {wallet.savingsGoal.toLocaleString()}</span>
+                <span>KES {balance.toLocaleString()}</span>
+                <span>Goal: KES {savingsGoal.toLocaleString()}</span>
               </div>
             </div>
           )}
@@ -138,16 +162,16 @@ export default function WalletPage() {
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-              <p className="text-primary-100 text-sm mb-1">Total Deposited</p>
-              <p className="text-xl font-bold">KES {wallet?.totalDeposited.toLocaleString() || '0'}</p>
+              <p className="text-primary-100 text-sm mb-1">Total Deposits</p>
+              <p className="text-xl font-bold">{wallet?.deposits?.length || 0}</p>
             </div>
             <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-              <p className="text-primary-100 text-sm mb-1">Total Withdrawn</p>
-              <p className="text-xl font-bold">KES {wallet?.totalWithdrawn.toLocaleString() || '0'}</p>
+              <p className="text-primary-100 text-sm mb-1">Current Balance</p>
+              <p className="text-xl font-bold">KES {balance.toLocaleString()}</p>
             </div>
             <div className="bg-white/10 backdrop-blur rounded-lg p-4">
               <p className="text-primary-100 text-sm mb-1">Auto-Save</p>
-              <p className="text-xl font-bold">{wallet?.autoSaveEnabled ? 'On' : 'Off'}</p>
+              <p className="text-xl font-bold">{wallet?.autoSaveRules?.enabled ? 'On' : 'Off'}</p>
             </div>
           </div>
         </div>

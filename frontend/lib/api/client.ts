@@ -1,5 +1,31 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+// Helper to get token from localStorage (Zustand persist storage)
+const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const authStorage = localStorage.getItem('auth-storage');
+    console.log('Auth storage raw:', authStorage);
+
+    if (!authStorage) {
+      console.log('No auth storage found in localStorage');
+      return null;
+    }
+
+    const parsed = JSON.parse(authStorage);
+    console.log('Parsed auth storage:', parsed);
+
+    const token = parsed?.state?.token || null;
+    console.log('Extracted token:', token ? 'Token found' : 'No token');
+
+    return token;
+  } catch (error) {
+    console.error('Error reading auth token:', error);
+    return null;
+  }
+};
+
 class APIClient {
   private baseURL: string;
 
@@ -13,12 +39,22 @@ class APIClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
 
+    // Get auth token
+    const token = getAuthToken();
+
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       credentials: 'include',
     };
 

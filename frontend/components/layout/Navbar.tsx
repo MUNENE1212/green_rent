@@ -28,26 +28,65 @@ export default function Navbar() {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard" className="hover:text-primary-200 transition">
-                  Dashboard
-                </Link>
-                <Link href="/wallet" className="hover:text-primary-200 transition">
-                  My Wallet
-                </Link>
+                {user?.role === 'admin' ? (
+                  <>
+                    <Link href="/admin/dashboard" className="hover:text-primary-200 transition">
+                      Verifications
+                    </Link>
+                    <Link href="/admin/landlords" className="hover:text-primary-200 transition">
+                      Landlords
+                    </Link>
+                    <Link href="/properties" className="hover:text-primary-200 transition">
+                      Properties
+                    </Link>
+                  </>
+                ) : user?.role === 'landlord' ? (
+                  <>
+                    <Link href="/landlord/dashboard" className="hover:text-primary-200 transition">
+                      Dashboard
+                    </Link>
+                    <Link href="/landlord/properties" className="hover:text-primary-200 transition">
+                      Properties
+                    </Link>
+                    <Link href="/landlord/tenants" className="hover:text-primary-200 transition">
+                      Tenants
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard" className="hover:text-primary-200 transition">
+                      Dashboard
+                    </Link>
+                    <Link href="/wallet" className="hover:text-primary-200 transition">
+                      My Wallet
+                    </Link>
+                  </>
+                )}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 hover:text-primary-200 transition">
                     <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      {user?.profile?.firstName?.[0] || user?.firstName?.[0]}
+                      {user?.profile?.lastName?.[0] || user?.lastName?.[0]}
                     </div>
-                    <span>{user?.firstName}</span>
+                    <span>{user?.profile?.firstName || user?.firstName}</span>
+                    <span className="text-xs bg-primary-700 px-2 py-1 rounded-full">
+                      {user?.role}
+                    </span>
                   </button>
                   <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100 rounded-t-lg">
                       Profile
                     </Link>
-                    <Link href="/bookings" className="block px-4 py-2 hover:bg-gray-100">
-                      My Bookings
-                    </Link>
+                    {user?.role === 'tenant' && (
+                      <Link href="/bookings" className="block px-4 py-2 hover:bg-gray-100">
+                        My Bookings
+                      </Link>
+                    )}
+                    {user?.role === 'landlord' && (
+                      <Link href="/landlord/payments" className="block px-4 py-2 hover:bg-gray-100">
+                        Payments
+                      </Link>
+                    )}
                     <button
                       onClick={logout}
                       className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-b-lg text-red-600"
@@ -98,17 +137,45 @@ export default function Navbar() {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard" className="block py-2 hover:text-primary-200">
-                  Dashboard
-                </Link>
-                <Link href="/wallet" className="block py-2 hover:text-primary-200">
-                  My Wallet
-                </Link>
+                {user?.role === 'admin' ? (
+                  <>
+                    <Link href="/admin/dashboard" className="block py-2 hover:text-primary-200">
+                      Verifications
+                    </Link>
+                    <Link href="/admin/landlords" className="block py-2 hover:text-primary-200">
+                      Landlords
+                    </Link>
+                    <Link href="/properties" className="block py-2 hover:text-primary-200">
+                      Properties
+                    </Link>
+                  </>
+                ) : user?.role === 'landlord' ? (
+                  <>
+                    <Link href="/landlord/dashboard" className="block py-2 hover:text-primary-200">
+                      Dashboard
+                    </Link>
+                    <Link href="/landlord/properties" className="block py-2 hover:text-primary-200">
+                      Properties
+                    </Link>
+                    <Link href="/landlord/tenants" className="block py-2 hover:text-primary-200">
+                      Tenants
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard" className="block py-2 hover:text-primary-200">
+                      Dashboard
+                    </Link>
+                    <Link href="/wallet" className="block py-2 hover:text-primary-200">
+                      My Wallet
+                    </Link>
+                    <Link href="/bookings" className="block py-2 hover:text-primary-200">
+                      My Bookings
+                    </Link>
+                  </>
+                )}
                 <Link href="/profile" className="block py-2 hover:text-primary-200">
                   Profile
-                </Link>
-                <Link href="/bookings" className="block py-2 hover:text-primary-200">
-                  My Bookings
                 </Link>
                 <button
                   onClick={logout}

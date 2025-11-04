@@ -17,7 +17,18 @@ export interface RegisterData {
 
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<APIResponse<{ user: User; token: string }>> => {
-    return apiClient.post('/auth/login', credentials);
+    const response = await apiClient.post<any>('/auth/login', credentials);
+    // Backend returns tokens.accessToken, but we need token
+    if (response.data && response.data.tokens) {
+      return {
+        ...response,
+        data: {
+          user: response.data.user,
+          token: response.data.tokens.accessToken,
+        },
+      };
+    }
+    return response;
   },
 
   register: async (data: RegisterData): Promise<APIResponse<{ user: User; token: string }>> => {
@@ -32,7 +43,18 @@ export const authAPI = {
         lastName: data.lastName,
       },
     };
-    return apiClient.post('/auth/register', payload);
+    const response = await apiClient.post<any>('/auth/register', payload);
+    // Backend returns tokens.accessToken, but we need token
+    if (response.data && response.data.tokens) {
+      return {
+        ...response,
+        data: {
+          user: response.data.user,
+          token: response.data.tokens.accessToken,
+        },
+      };
+    }
+    return response;
   },
 
   logout: async (): Promise<APIResponse<null>> => {

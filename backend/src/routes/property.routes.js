@@ -15,7 +15,11 @@ import {
   setPrimaryImage,
   searchProperties,
   toggleFeatured,
-  verifyProperty
+  verifyProperty,
+  getPendingProperties,
+  approveProperty,
+  rejectProperty,
+  requestReview
 } from '../controllers/property.controller.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -112,5 +116,41 @@ router.put('/:id/featured', toggleFeatured);
  * @access  Private (Admin only)
  */
 router.put('/:id/verify', authorize('admin'), verifyProperty);
+
+/**
+ * Admin verification routes
+ */
+
+/**
+ * @route   GET /api/v1/properties/admin/pending
+ * @desc    Get all pending properties awaiting verification
+ * @access  Private (Admin only)
+ * @query   { page?: number, limit?: number }
+ */
+router.get('/admin/pending', authorize('admin'), getPendingProperties);
+
+/**
+ * @route   PUT /api/v1/properties/:id/approve
+ * @desc    Approve a property
+ * @access  Private (Admin only)
+ * @body    { notes?: string }
+ */
+router.put('/:id/approve', authorize('admin'), approveProperty);
+
+/**
+ * @route   PUT /api/v1/properties/:id/reject
+ * @desc    Reject a property
+ * @access  Private (Admin only)
+ * @body    { reason: string, notes?: string }
+ */
+router.put('/:id/reject', authorize('admin'), rejectProperty);
+
+/**
+ * @route   PUT /api/v1/properties/:id/review
+ * @desc    Request more information from landlord
+ * @access  Private (Admin only)
+ * @body    { notes: string }
+ */
+router.put('/:id/review', authorize('admin'), requestReview);
 
 export default router;

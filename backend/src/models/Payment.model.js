@@ -28,6 +28,12 @@ const paymentSchema = new Schema({
     index: true
   },
 
+  walletId: {
+    type: Schema.Types.ObjectId,
+    ref: 'RentWallet',
+    index: true
+  },
+
   amount: {
     type: Number,
     required: [true, 'Payment amount is required'],
@@ -130,6 +136,23 @@ const paymentSchema = new Schema({
     transactionDesc: String
   },
 
+  // M-Pesa STK Push specific fields
+  mpesaCheckoutRequestId: {
+    type: String,
+    index: true
+  },
+
+  mpesaMerchantRequestId: {
+    type: String,
+    index: true
+  },
+
+  mpesaReceiptNumber: String,
+
+  phoneNumber: String,
+
+  errorMessage: String,
+
   cardDetails: {
     last4Digits: String,
     cardType: {
@@ -199,9 +222,11 @@ const paymentSchema = new Schema({
 paymentSchema.index({ leaseId: 1 });
 paymentSchema.index({ tenantId: 1 });
 paymentSchema.index({ landlordId: 1 });
+paymentSchema.index({ walletId: 1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ 'intasend.invoiceId': 1 });
 paymentSchema.index({ 'intasend.checkoutId': 1 });
+paymentSchema.index({ mpesaCheckoutRequestId: 1 });
 paymentSchema.index({ dueDate: 1 });
 paymentSchema.index({ createdAt: -1 });
 paymentSchema.index({ type: 1, status: 1 });

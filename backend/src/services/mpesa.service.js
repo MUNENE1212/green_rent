@@ -2,6 +2,12 @@ import axios from 'axios';
 
 class MpesaService {
   constructor() {
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+
     this.consumerKey = process.env.MPESA_CONSUMER_KEY;
     this.consumerSecret = process.env.MPESA_CONSUMER_SECRET;
     this.shortcode = process.env.MPESA_SHORTCODE;
@@ -13,14 +19,39 @@ class MpesaService {
     this.baseUrl = this.environment === 'production'
       ? 'https://api.safaricom.co.ke'
       : 'https://sandbox.safaricom.co.ke';
+
+    console.log('M-Pesa Service Initialized:', {
+      environment: this.environment,
+      baseUrl: this.baseUrl,
+      hasConsumerKey: !!this.consumerKey,
+      hasConsumerSecret: !!this.consumerSecret,
+      hasShortcode: !!this.shortcode,
+      hasPasskey: !!this.passkey,
+      callbackUrl: this.callbackUrl
+    });
+
+    this.initialized = true;
   }
 
   /**
    * Generate OAuth access token
    */
   async getAccessToken() {
+    this.init(); // Lazy initialize on first use
+
     try {
+      // Validate credentials
+      if (!this.consumerKey || !this.consumerSecret) {
+        console.error('M-Pesa credentials missing:', {
+          hasConsumerKey: !!this.consumerKey,
+          hasConsumerSecret: !!this.consumerSecret
+        });
+        throw new Error('M-Pesa credentials not configured. Please set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET in .env');
+      }
+
       const auth = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString('base64');
+
+      console.log('Requesting M-Pesa access token from:', `${this.baseUrl}/oauth/v1/generate`);
 
       const response = await axios.get(
         `${this.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
@@ -31,9 +62,15 @@ class MpesaService {
         }
       );
 
+      console.log('M-Pesa access token obtained successfully');
       return response.data.access_token;
     } catch (error) {
-      console.error('Error getting M-Pesa access token:', error.response?.data || error.message);
+      console.error('Error getting M-Pesa access token:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
       throw new Error('Failed to authenticate with M-Pesa');
     }
   }
@@ -113,7 +150,10 @@ class MpesaService {
         phone: formattedPhone,
         amount: payload.Amount,
         reference: accountReference,
+        callbackUrl: this.callbackUrl,
       });
+
+      console.log('Full STK Push Payload:', JSON.stringify(payload, null, 2));
 
       const response = await axios.post(
         `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
@@ -126,7 +166,7 @@ class MpesaService {
         }
       );
 
-      console.log('STK Push Response:', response.data);
+      console.log('STK Push Response:', JSON.stringify(response.data, null, 2));
 
       return {
         success: true,
@@ -137,12 +177,23 @@ class MpesaService {
         customerMessage: response.data.CustomerMessage,
       };
     } catch (error) {
-      console.error('STK Push Error:', error.response?.data || error.message);
+      console.error('STK Push Error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+
+      const errorMessage = error.response?.data?.errorMessage
+        || error.response?.data?.ResponseDescription
+        || error.message
+        || 'Failed to initiate payment';
 
       return {
         success: false,
-        error: error.response?.data?.errorMessage || error.message || 'Failed to initiate payment',
-        errorCode: error.response?.data?.errorCode,
+        error: errorMessage,
+        errorCode: error.response?.data?.errorCode || error.response?.data?.ResponseCode,
+        details: error.response?.data
       };
     }
   }

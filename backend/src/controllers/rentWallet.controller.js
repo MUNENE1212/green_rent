@@ -51,11 +51,19 @@ export const getMyWallet = catchAsync(async (req, res) => {
   const wallet = await RentWallet.findOne({
     userId: req.user._id,
     status: 'active'
-  }).populate('linkedLeaseId', 'leaseNumber unitId monthlyRent');
+  });
 
   if (!wallet) {
     return ApiResponse.notFound(res, 'Rent wallet not found');
   }
+
+  // Debug logging
+  console.log('=== GET MY WALLET DEBUG ===');
+  console.log('User ID:', req.user._id);
+  console.log('Wallet ID:', wallet._id);
+  console.log('Wallet balance:', wallet.balance);
+  console.log('Deposits count:', wallet.deposits?.length);
+  console.log('Wallet JSON:', JSON.stringify(wallet.toJSON(), null, 2));
 
   return ApiResponse.success(res, 200, 'Wallet retrieved successfully', { wallet });
 });
@@ -160,13 +168,17 @@ export const initiateMpesaDeposit = catchAsync(async (req, res) => {
 
   // Create pending payment record
   const payment = await Payment.create({
-    userId: req.user._id,
+    tenantId: req.user._id,
+    landlordId: req.user._id, // For wallet deposits, tenant is also the landlord
     walletId: wallet._id,
     amount,
     paymentMethod: 'mpesa',
     status: 'pending',
     phoneNumber,
-    type: 'deposit'
+    type: 'deposit',
+    breakdown: {
+      total: amount
+    }
   });
 
   // Initiate STK Push

@@ -434,7 +434,130 @@ export const toggleFeatured = catchAsync(async (req, res) => {
 });
 
 /**
- * Verify property (Admin only)
+ * Get pending properties for verification (Admin only)
+ * GET /api/v1/properties/admin/pending
+ */
+export const getPendingProperties = catchAsync(async (req, res) => {
+  const { page = 1, limit = 20 } = req.query;
+
+  const properties = await Property.find({
+    'verification.status': 'pending'
+  })
+    .populate('landlordId', 'profile.firstName profile.lastName email phone')
+    .sort({ createdAt: -1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+  const total = await Property.countDocuments({ 'verification.status': 'pending' });
+
+  return ApiResponse.success(res, 200, 'Pending properties retrieved', {
+    properties,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    }
+  });
+});
+
+/**
+ * Approve property (Admin only)
+ * PUT /api/v1/properties/:id/approve
+ */
+export const approveProperty = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { notes } = req.body;
+
+  const property = await Property.findById(id);
+
+  if (!property) {
+    return ApiResponse.notFound(res, 'Property not found');
+  }
+
+  property.verification = {
+    status: 'approved',
+    verifiedBy: req.user._id,
+    verifiedAt: new Date(),
+    notes: notes || 'Property approved'
+  };
+  property.verifiedProperty = true;
+  property.status = 'active';
+
+  await property.save();
+
+  // TODO: Send notification to landlord
+  console.log(`Property ${property._id} approved by admin ${req.user._id}`);
+
+  return ApiResponse.success(res, 200, 'Property approved successfully', { property });
+});
+
+/**
+ * Reject property (Admin only)
+ * PUT /api/v1/properties/:id/reject
+ */
+export const rejectProperty = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { reason, notes } = req.body;
+
+  if (!reason) {
+    return ApiResponse.error(res, 400, 'Rejection reason is required');
+  }
+
+  const property = await Property.findById(id);
+
+  if (!property) {
+    return ApiResponse.notFound(res, 'Property not found');
+  }
+
+  property.verification = {
+    status: 'rejected',
+    verifiedBy: req.user._id,
+    verifiedAt: new Date(),
+    rejectionReason: reason,
+    notes: notes || ''
+  };
+  property.status = 'inactive';
+
+  await property.save();
+
+  // TODO: Send notification to landlord
+  console.log(`Property ${property._id} rejected by admin ${req.user._id}`);
+
+  return ApiResponse.success(res, 200, 'Property rejected', { property });
+});
+
+/**
+ * Request more information (Admin only)
+ * PUT /api/v1/properties/:id/review
+ */
+export const requestReview = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { notes } = req.body;
+
+  const property = await Property.findById(id);
+
+  if (!property) {
+    return ApiResponse.notFound(res, 'Property not found');
+  }
+
+  property.verification = {
+    status: 'under_review',
+    verifiedBy: req.user._id,
+    verifiedAt: new Date(),
+    notes: notes || 'Additional information required'
+  };
+
+  await property.save();
+
+  // TODO: Send notification to landlord
+  console.log(`Property ${property._id} under review by admin ${req.user._id}`);
+
+  return ApiResponse.success(res, 200, 'Property marked under review', { property });
+});
+
+/**
+ * Legacy verify property function (kept for backward compatibility)
  * PUT /api/v1/properties/:id/verify
  */
 export const verifyProperty = catchAsync(async (req, res) => {
@@ -446,7 +569,13 @@ export const verifyProperty = catchAsync(async (req, res) => {
     return ApiResponse.notFound(res, 'Property not found');
   }
 
-  property.verified = true;
+  property.verifiedProperty = true;
+  property.verification = {
+    status: 'approved',
+    verifiedBy: req.user._id,
+    verifiedAt: new Date()
+  };
+  property.status = 'active';
   await property.save();
 
   return ApiResponse.success(res, 200, 'Property verified successfully', { property });
@@ -463,5 +592,10 @@ export default {
   setPrimaryImage,
   searchProperties,
   toggleFeatured,
-  verifyProperty
+  verifyProperty,
+  // Admin verification functions
+  getPendingProperties,
+  approveProperty,
+  rejectProperty,
+  requestReview
 };

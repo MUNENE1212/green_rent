@@ -1,14 +1,36 @@
-import express from 'express';
+// Load environment variables FIRST before any other imports
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables with explicit path
+const envPath = join(__dirname, '.env');
+console.log('Loading .env from:', envPath);
+const envResult = dotenv.config({ path: envPath });
+
+if (envResult.error) {
+  console.error('Error loading .env file:', envResult.error);
+} else {
+  console.log('Environment variables loaded successfully');
+  console.log('M-Pesa credentials check:', {
+    MPESA_CONSUMER_KEY: process.env.MPESA_CONSUMER_KEY ? 'LOADED' : 'NOT LOADED',
+    MPESA_CONSUMER_SECRET: process.env.MPESA_CONSUMER_SECRET ? 'LOADED' : 'NOT LOADED',
+    MPESA_SHORTCODE: process.env.MPESA_SHORTCODE || 'NOT LOADED',
+  });
+}
+
+// Now import other modules (after env vars are loaded)
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import connectDB from './src/config/database.js';
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -63,6 +85,7 @@ import rentWalletRoutes from './src/routes/rentWallet.routes.js';
 import paymentRoutes from './src/routes/payment.routes.js';
 import bookingRoutes from './src/routes/booking.routes.js';
 import leaseRoutes from './src/routes/lease.routes.js';
+import mpesaRoutes from './src/routes/mpesa.routes.js';
 
 // Use routes
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
@@ -73,6 +96,7 @@ app.use(`/api/${API_VERSION}/rent-wallets`, rentWalletRoutes);
 app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 app.use(`/api/${API_VERSION}/bookings`, bookingRoutes);
 app.use(`/api/${API_VERSION}/leases`, leaseRoutes);
+app.use(`/api/${API_VERSION}/mpesa`, mpesaRoutes);
 
 // 404 handler - Must be after all routes
 app.use('*', (req, res) => {

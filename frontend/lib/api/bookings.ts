@@ -15,7 +15,8 @@ export const bookingAPI = {
   },
 
   getMyBookings: async (): Promise<APIResponse<Booking[]>> => {
-    return apiClient.get('/bookings/my-bookings');
+    // Backend filters by user role automatically
+    return apiClient.get('/bookings');
   },
 
   getBooking: async (id: string): Promise<APIResponse<Booking>> => {
@@ -23,6 +24,6 @@ export const bookingAPI = {
   },
 
   cancelBooking: async (id: string, reason?: string): Promise<APIResponse<Booking>> => {
-    return apiClient.patch(`/bookings/${id}/cancel`, { reason });
+    return apiClient.put(`/bookings/${id}/cancel`, { reason });
   },
 };

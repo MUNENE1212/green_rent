@@ -2,21 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { walletAPI } from '@/lib/api/wallet';
 import { bookingAPI } from '@/lib/api/bookings';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [walletBalance, setWalletBalance] = useState(0);
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
+      // Redirect admins to admin dashboard
+      if (user.role === 'admin') {
+        router.push('/admin/dashboard');
+        return;
+      }
+      // Redirect landlords to their dashboard
+      if (user.role === 'landlord') {
+        router.push('/landlord/dashboard');
+        return;
+      }
       fetchDashboardData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const fetchDashboardData = async () => {
     try {

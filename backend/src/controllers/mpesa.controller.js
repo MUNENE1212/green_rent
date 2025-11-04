@@ -49,7 +49,7 @@ export const mpesaCallback = catchAsync(async (req, res) => {
         await wallet.deposit(
           callbackResult.amount,
           'mpesa',
-          callbackResult.mpesaReceiptNumber,
+          payment._id, // Pass Payment ObjectId, not receipt number
           `M-Pesa deposit - ${callbackResult.mpesaReceiptNumber}`
         );
         console.log(`Wallet ${wallet._id} updated with KES ${callbackResult.amount}`);

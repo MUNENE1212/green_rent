@@ -382,6 +382,21 @@ const propertySchema = new Schema({
   verifiedProperty: {
     type: Boolean,
     default: false
+  },
+
+  verification: {
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'under_review'],
+      default: 'pending'
+    },
+    verifiedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    verifiedAt: Date,
+    rejectionReason: String,
+    notes: String
   }
 
 }, {
