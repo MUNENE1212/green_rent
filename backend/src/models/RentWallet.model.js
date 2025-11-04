@@ -6,8 +6,7 @@ const rentWalletSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   leaseId: {
@@ -49,8 +48,7 @@ const rentWalletSchema = new Schema({
   status: {
     type: String,
     enum: ['active', 'locked', 'completed', 'closed'],
-    default: 'active',
-    index: true
+    default: 'active'
   },
 
   deposits: [{

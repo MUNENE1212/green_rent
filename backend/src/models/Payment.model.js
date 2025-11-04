@@ -5,8 +5,7 @@ const { Schema } = mongoose;
 const paymentSchema = new Schema({
   leaseId: {
     type: Schema.Types.ObjectId,
-    ref: 'Lease',
-    index: true
+    ref: 'Lease'
   },
 
   paymentPlanId: {
@@ -17,15 +16,13 @@ const paymentSchema = new Schema({
   tenantId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   landlordId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   amount: {
@@ -69,8 +66,7 @@ const paymentSchema = new Schema({
   status: {
     type: String,
     enum: ['pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
 
   // IntaSend specific fields

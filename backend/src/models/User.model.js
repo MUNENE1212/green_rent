@@ -260,10 +260,9 @@ const userSchema = new Schema({
 });
 
 // Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
+// Note: email and phone already have unique indexes from field definition
 userSchema.index({ role: 1 });
-userSchema.index({ 'profile.nationalId': 1 }, { sparse: true });
+// Note: profile.nationalId already has unique+sparse index from field definition
 userSchema.index({ status: 1 });
 userSchema.index({ createdAt: -1 });
 

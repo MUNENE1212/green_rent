@@ -12,22 +12,19 @@ const maintenanceRequestSchema = new Schema({
   unitId: {
     type: Schema.Types.ObjectId,
     ref: 'Unit',
-    required: true,
-    index: true
+    required: true
   },
 
   tenantId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   landlordId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
 
   category: {
@@ -43,15 +40,13 @@ const maintenanceRequestSchema = new Schema({
       'general',
       'other'
     ],
-    required: true,
-    index: true
+    required: true
   },
 
   priority: {
     type: String,
     enum: ['low', 'medium', 'high', 'emergency'],
-    default: 'medium',
-    index: true
+    default: 'medium'
   },
 
   title: {
@@ -76,8 +71,7 @@ const maintenanceRequestSchema = new Schema({
       'cancelled',
       'on_hold'
     ],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
 
   images: [{
@@ -197,7 +191,7 @@ const maintenanceRequestSchema = new Schema({
 });
 
 // Indexes
-maintenanceRequestSchema.index({ requestNumber: 1 }, { unique: true });
+// Note: requestNumber already has unique index from field definition
 maintenanceRequestSchema.index({ unitId: 1 });
 maintenanceRequestSchema.index({ tenantId: 1 });
 maintenanceRequestSchema.index({ landlordId: 1 });

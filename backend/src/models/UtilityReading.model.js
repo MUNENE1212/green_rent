@@ -6,22 +6,19 @@ const utilityReadingSchema = new Schema({
   unitId: {
     type: Schema.Types.ObjectId,
     ref: 'Unit',
-    required: true,
-    index: true
+    required: true
   },
 
   leaseId: {
     type: Schema.Types.ObjectId,
     ref: 'Lease',
-    required: true,
-    index: true
+    required: true
   },
 
   utilityType: {
     type: String,
     enum: ['water', 'electricity', 'gas'],
-    required: true,
-    index: true
+    required: true
   },
 
   meterNumber: {
@@ -68,8 +65,7 @@ const utilityReadingSchema = new Schema({
   status: {
     type: String,
     enum: ['pending', 'verified', 'disputed', 'billed', 'paid'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
 
   billingPeriod: {
